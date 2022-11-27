@@ -1,0 +1,17 @@
+* {
+    font-family: sans-serif;
+    color:rgb(28, 28, 31);
+    font-size: 20px;
+}
+
+body {
+    
+    justify-content: center;
+
+    align-items: center;
+    background-color: darkgray;
+}
+
+h1 {
+    padding: 10px;
+}

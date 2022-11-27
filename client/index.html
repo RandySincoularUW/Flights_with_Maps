@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<!-- 22-Nov-22    R.S.    Started adding map code -->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Flights by Airport</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1"> 
+        <link rel="stylesheet" href="styles2.css">
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+        crossorigin=""/>
+
+        <script type = "text/javascript" src="mapping.js"></script>
+        
+    </head>
+        
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+            integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+            crossorigin="">
+            
+    </script>
+
+    <style>
+        #map { height: 460px;}
+    </style>
+
+    <body>
+
+        <p>Here is your current location:<br> </p>
+        <br>
+ 
+        <div id="location">
+            <p>Current location: <br> </p>
+            <!-- <button color="Blue" onclick="getLocation()">Let's see where we are</button> -->
+            <br>
+        </div>
+
+        <div id="nearbyAirport">
+            <p><br>Here is the nearby airport</p>
+        </div>
+        <div>
+           <h1 text-align: left>Flights<br> </h1>
+        </div>
+
+        <br>
+
+        <div class="current_aircraft">
+
+            <span id="aircraft"></span>
+            <span id="dir"></span>
+
+            <table>
+                <thead>
+                <tr>
+                    <th id="reg_number">Altitude</th>
+                    <th id="speed">Registration</th>
+                    <th id="direction">Direction</th>
+                    <th id="lat">Latitude </th>
+                    <th id="lng">Longitude</th>
+                    <th id=" airline_icao"></th>
+                    <th id="status"></th>
+                </tr>
+            </thead>
+            <tbody id="table_body"></tbody>
+            
+            </table>
+        </div>
+
+        <div id="newAirportDiv">
+                <br>
+                <label for="Airport">Select a new airport: </label>
+                <select id="newAirport" onchange="selectedAirport()">
+                    <option value="Default">Default Nearby Airport</option>
+                    <option value="MKE">Milwaukee</option>
+                    <option value="ORD">Chicalgo O'Hare</option>
+                    <option value="ATL">Atlanta</option>
+                    
+                    <br>
+                </select>
+ 
+        </div>
+
+        <br>
+        <br>
+        <div id="map"></div>
+
+
+        <script>
+
+            var scriptName = "index.html: "
+
+            var map = L.map('map').setView([43.505, -89.09], 13);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+
+            // Get Location of User
+            // --------------------
+            console.log(scriptName + " in script to get location ...")
+            
+            // Find the element on page where id='location'
+            var x = document.getElementById("location");
+            
+            // Get Users Location
+            getLocation()
+
+
+
+            // Get the value of the selected airport from dropdown list
+            // --------------------------------------------------------
+            function selectedAirport() {
+                console.log(scriptName + " in selectedAirport() ...")
+
+                selectElement = document.querySelector('#newAirport')
+                var newAirportName = selectElement.value
+
+                console.log("index.html() selectedAirport() new airport: " + newAirportName)
+                
+                // Get flights for newly selected airport
+                getFlights(newAirportName)
+            }
+
+
+            function getLocation() {
+                console.log(scriptName + " in getLocation() ...")
+                var positionOptions = {timeout:10000, maximumAge: 0}
+    
+                console.log(scriptName + " calling geolocation ...")
+                navigator.geolocation.getCurrentPosition(success, error)
+            }
+                
+            // --------------------------------------
+            // Use Geolocation to Determine Location
+            // --------------------------------------
+
+            let marker, circle, mapZoomed, lat, lng
+
+            // Geolocation Success
+            function success(position) {
+
+                console.log(scriptName + " in success (position) ...")
+
+                var latitude = position.coords.latitude
+                var longitude = position.coords.longitude
+                var accuracy = position.coords.accuracy
+
+                console.log(scriptName + " Lat: " + latitude + " Long: " + longitude + " Accuracy: " + accuracy)
+
+                // Use this if User is Moving and you are using: geolocation.watchPosition()
+                // if (marker) {
+                //     map.removeLayer(marker)
+                //     map.removeLayer(circle)
+                // }
+    
+                console.log(scriptName + " Adding marker and circle to map ...")
+
+                marker = L.marker([latitude, longitude]).addTo(map)
+                circle = L.circle([latitude, longitude], {radius:accuracy}).addTo(map)
+                
+                if (!mapZoomed) {
+
+                    mapZoomed = map.fitBounds(circle.getBounds())
+                }
+
+                console.log(scriptName + " Setting map view to: " + latitude + " " + longitude)
+                map.setView([latitude, longitude])
+
+                console.log("index.html() in showPosition() ...")
+            
+                // Display the latitude and longitude on the web page
+                x.innerHTML="Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude;
+            
+                // Set the latitude and longitude variables with current location
+                latitude = position.coords.latitude
+                longitude = position.coords.longitude
+            
+                console.log("index.html()  lat/lng: " + latitude + " " + longitude)
+                console.log("index.html() setting up local storage variable .... ")
+
+                // Save latitude and longitude to local storage
+                localStorage.setItem('latitude',`${latitude}`)
+                localStorage.setItem('longitude',`${longitude}`)
+            
+                console.log("index.html() done with showPosition()...")
+         
+            }  // end success()
+
+            function error(error) {
+
+                // User Did Not Allow Location to be Shared
+                if (error.code === 1) {
+                    alert("Allow Geolocation for your location")
+
+                } else {
+                    alert("Can't get your current location")
+                    
+                }
+
+            } // end error()
+           
+            // Show Flights on Map
+            // -------------------
+            console.log("index.html: calling showFlights() ...")
+            showFlights()
+
+            // This function gets called if you allow your PC to share your location
+            function showPosition(position) {
+            
+                console.log("index.html() in showPosition() ...")
+            
+                // Display the latitude and longitude on the web page
+                x.innerHTML="Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude;
+            
+                // Set the latitude and longitude variables with current location
+                latitude = position.coords.latitude
+                longitude = position.coords.longitude
+            
+                console.log("index.html()  lat/lng: " + latitude + " " + longitude)
+                console.log("index.html() setting up local storage variable .... ")
+
+                // Save latitude and longitude to local storage
+                localStorage.setItem('latitude',`${latitude}`)
+                localStorage.setItem('longitude',`${longitude}`)
+               
+                console.log("index.html() done with showPosition()...")
+            
+            }  // end showPosition()
+
+            console.log(" done in index.html() script ...")
+            
+        </script>
+
+        <script src="app.js"></script>
+        <script src="mapping.js"></script>
+
+    </body>
+</html>

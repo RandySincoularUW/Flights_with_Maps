@@ -1,0 +1,55 @@
+* {
+    font-family: sans-serif;
+    color:rgb(28, 28, 31);
+    font-size: 20px;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+    align-items: center;
+    background-color: darkgray;
+}
+
+h1 {
+    padding: 10px;
+}
+
+.current_aircraft {
+    background-color: darkslategray;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.departures {
+    background-color: dimgrey;
+    padding: 15px;
+}
+
+.departures table {
+    background-color: forestgreen;
+    text-align: left;
+}
+
+
+
+#destination {
+    width: 700px;
+}
+
+#flight {
+    width: 205px;
+}
+
+#lat {
+    width: 135px;
+}
+
+#lng {
+    width: 160px;
+}
+
+#remarks {
+    width: 260px;
+}
