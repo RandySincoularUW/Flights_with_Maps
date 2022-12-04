@@ -23,11 +23,6 @@ console.log("app.js() myLat/Lng: " + myLatitude + " " + myLongitude)
 
 const tableBody = document.getElementById('table_body')
 
-// Get error: cannot access 'createCSVAndL:oad' before
-// initialization
-// const createCSVAndLoad = new createCSVAndLoad()
-
-
 // Function to get current flights
 // for a specific airport
 const getFlights = async function (airportCode)  {
@@ -49,7 +44,15 @@ const getFlights = async function (airportCode)  {
 
         // When you change the type/direction of the ticks, the airport code does 
         // get intrepreted correctly.
-        const api_url = `http://localhost:8000/flights/` + `${airportCode}`
+
+        // Modified 2-Dec-22 for AWS server
+        // Changed to: HTTPS for AWS
+        // 3-Dec-22 Need to use http for AWS
+        const api_url = `http://127.0.0.1:8000/flights/` + `${airportCode}`
+
+        // Modify for AWS 1-Dec-22
+        // Comment: 2-Dec-22
+        //const api_url = `/flights/` + `${airportCode}`
 
    
         console.log("app.js: getFlights() api_url: " + api_url)
@@ -76,7 +79,7 @@ const getFlights = async function (airportCode)  {
   
     } // end try
     catch (error) {
-        console.error("app.js: getFlights() Error getting flights ...")
+        console.error("app.js: getFlights() Error getting flights. Error: " + error.stack)
     }
 
 }  // end getFlights
@@ -90,18 +93,44 @@ const getNearbyAirports = async function ()  {
  
         console.log("app.js:  in getNearbyAirports() ...")
         
-        console.log("app.js:  etNearbyAirports() calling nearbyAirports ...")
+        console.log("app.js:  getNearbyAirports() calling nearbyAirports ...")
 
         // Make sure to use backticks when defining the route parameter
-        console.log("app.js:  etNearbyAirports() calling flights api ...")
+        console.log("app.js:  getNearbyAirports() calling flights api ...")
 
         // Hardcoded lat/lng
         // const api_url = `http://localhost:8000/nearbyAirports/` + `${43.0637},${-89.2043}`
 
+        // Modified for AWS 2-Dec-22
+        // Changed to: HTTPS
+        // Comment out 2-Dec-22 for AWS. Getting connection refused
+        // const api_url = `https://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
 
-        const api_url = `http://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
-     
-        console.log("app.js: etNearbyAirports() api_url: " + api_url)
+        // 2-Dec-22 Try: 127.0.0.1 for localhost?
+        
+        // This works
+        // 3-Dec-22
+        // const api_url = `http://127.0.0.1:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        const api_url = `http://127.0.0.1:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        // error 3-Dec-22
+        // const api_url = `http://54.147.158.125:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        // const api_url = `http://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+ 
+        // const api_url = '8000/nearbyAirports/' + `${myLatitude},${myLongitude}`
+
+        // 3-Dec-22 Try a private address?
+        // Get error: err_name_not_resolved
+        // const api_url = `https://ip-172-31-16-84.ec2.internal:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        // try address with special port # shown in ssh window
+        // const api_url = `https://127.0.0.1:59108/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        // Comment out 2-Dec-22 for AWS
+        // const api_url = `/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        console.log("app.js: getNearbyAirports() api_url: " + api_url)
        
         const response = await fetch(api_url);
 
@@ -110,7 +139,7 @@ const getNearbyAirports = async function ()  {
         console.log(json);
 
 
-        console.log("app.js: etNearbyAirports() length: " + json.response.airports.length)
+        console.log("app.js: getNearbyAirports() length: " + json.response.airports.length)
 
         if (json.response.airports.length < 1) {
             alert("No response from flight tracking (nearby) API... try again later")

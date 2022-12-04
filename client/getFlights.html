@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+        <link rel="shortcut icon" href="favicon.ico" >
+        <link rel="shortcut icon" href="#" >
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        <h1>Test getting flights from AWS Server</h1>
+        <script>
+
+console.log("getting flights ...")
+
+
+
+const getFlights = async function ()  {
+try {
+ 
+ // Check if airportCode is set.  First time through,
+ // the airportCode gets set to current location;
+ // Can be set by user on subsequent passes
+ if (typeof airportCode == 'undefined') {
+     airportCode = 'MSN'
+ }
+
+ console.log("app.js: in getFlights() ...airport code: " + airportCode)
+
+ // The ${airport_code} never gets interpreted as 'MSN'
+ // Notice the type and direction of the tick marks.
+ // const api_url = 'http://localhost:8000/flights/${airport_code}'
+
+ // When you change the type/direction of the ticks, the airport code does 
+ // get intrepreted correctly.
+
+ // Modified 2-Dec-22 for AWS server
+ // Changed to: HTTPS for AWS
+ // 3-Dec-22 Need to use http for AWS
+ const api_url = `http://127.0.0.1:8000/flights/MSN`
+
+
+ console.log("app.js: getFlights() api_url: " + api_url)
+
+ // Call API to get current flights for selected airport
+ const response = await fetch(api_url);
+
+ // Wait for response from flight API
+ const json = await response.json();
+
+ console.log("app.js: getFlights() " + json);
+ console.log(json)
+
+ console.log("app.js: getFlights() length: " + json.response.length)
+
+ if (json.response.length < 1) {
+     alert("No response from flight tracking API ... try again later")
+ }
+
+ // Populate the Flight Table with Active Flights
+ // populateFlightTable(json)
+
+ // Create a Text File and Load Into Postgres
+ // createCSVAndLoad(json)
+
+} // end try
+catch (error) {
+ console.error("app.js: getFlights() Error getting flights. Error: " + error.stack)
+}
+
+}
+
+getFlights()
+
+        </script>
+    </body>
+</html>

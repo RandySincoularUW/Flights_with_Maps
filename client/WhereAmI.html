@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=\, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+      integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+      crossorigin=""
+    />
+    <script
+      
+      src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+      integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+      crossorigin=""
+    ></script>
+    <style>
+      #map {
+        height: 360px;
+      }
+    </style>
+
+    <title>Where am I?</title>
+  </head>
+  <body>
+    <h1>Where am I Located?</h1>
+
+    <p>Click the button to get your coordinates and display them on a map.</p>
+
+  <button color="Blue" onclick="getLocation()">Try It</button>
+
+  <p id="demo">
+
+  </p>
+
+
+    <div id="main">
+        <div id="location" class="sub">
+            <h2>And you are in...</h2>
+            <div class="address"></div>
+        </div>
+    </div>
+    <div id="map"></div>
+
+<script>
+
+var scriptName = "WhereAmI.html: "
+
+var map
+
+
+var map = L.map('map').setView([43.505, -89.09], 13);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    
+// Get Location of User
+
+console.log(" in script to get location ...")
+
+var x = document.getElementById("demo");
+
+// +++++++++++++++++
+            // Get Users Location
+            getLocation()
+
+
+
+            function getLocation() {
+                console.log(scriptName + " in getLocation() ...")
+                var positionOptions = {timeout:10000, maximumAge: 0}
+    
+                console.log(scriptName + " calling geolocation ...")
+                navigator.geolocation.getCurrentPosition(success, error)
+            }
+                
+            // --------------------------------------
+            // Use Geolocation to Determine Location
+            // --------------------------------------
+
+            let marker, circle, mapZoomed, lat, lng
+
+            // Geolocation Success
+            function success(position) {
+
+                console.log(scriptName + " in success (position) ...")
+
+                var latitude = position.coords.latitude
+                var longitude = position.coords.longitude
+                var accuracy = position.coords.accuracy
+
+                console.log(scriptName + " Lat: " + latitude + " Long: " + longitude + " Accuracy: " + accuracy)
+    
+                console.log(scriptName + " Adding marker and circle to map ...")
+
+                marker = L.marker([latitude, longitude]).addTo(map)
+                circle = L.circle([latitude, longitude], {radius:accuracy}).addTo(map)
+                
+                if (!mapZoomed) {
+
+                    mapZoomed = map.fitBounds(circle.getBounds())
+                }
+
+                console.log(scriptName + " Setting map view to: " + latitude + " " + longitude)
+                map.setView([latitude, longitude])
+
+                console.log("index.html() in showPosition() ...")
+            
+                // Display the latitude and longitude on the web page
+                x.innerHTML="Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude;
+            
+                // Set the latitude and longitude variables with current location
+                latitude = position.coords.latitude
+                longitude = position.coords.longitude
+            
+                console.log("index.html()  lat/lng: " + latitude + " " + longitude)
+                console.log("index.html() setting up local storage variable .... ")
+
+                // Save latitude and longitude to local storage
+                localStorage.setItem('latitude',`${latitude}`)
+                localStorage.setItem('longitude',`${longitude}`)
+            
+                console.log("index.html() done with showPosition()...")
+         
+            }  // end success()
+
+            function error(error) {
+
+                console.log("Error for geolocation: " + error.stack)
+                console.log("Error for geolocation: " + error)
+
+                // User Did Not Allow Location to be Shared
+                if (error.code === 1) {
+                    alert("Allow Geolocation for your location")
+                    console.log("You must allow geolocation for your location")
+
+                } else {
+                    alert("Can't get your current location")
+                    console.error("Can't get your location")
+                    
+                }
+
+            } // end error()
+           
+
+            console.log(" done in WhereAmI.html() script ...")
+            
+// +++++++++++++++++
+
+
+    </script>
+  </body>
+</html>

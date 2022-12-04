@@ -42,6 +42,16 @@ try {
 
     try {
    
+            // 4-Dec-22 Add for AWS/EC2
+            // Verify we have a valid currentID value
+            if ((isNaN(currentID)) || (currentID == null)) {
+ 
+                console.log(scriptName + " currentID argument not sent, setting default currentID sequence number ...")
+                currentID = 1
+    
+            } 
+
+
             // Indicate no data is available when API is not reachable
             if (json.response.length < 1) {
 

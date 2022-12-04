@@ -27,6 +27,7 @@ const { response } = require("express")
 // Get the API Key from an Environment Variable called: FLIGHTS_API_KEY
 const myFlightsAPIKey = process.env.flightsAPIKey
 
+console.log("server.js(): myFlightsAPIKey: " + myFlightsAPIKey)
 // Distance to find nearby airports
 const nearbyAirportDistance = process.env.nearbyAirportDistance
 
@@ -36,9 +37,17 @@ const api_base = "https://airlabs.co/api/v9/";
 
 app.use(cors())
 
+// 3-Dec-22 Updated.  Changed alert to: console.error()
 app.get('/flights', async (request, response) => {
-  alert("invalid route")
-  response.send("invalid route")
+  console.error("/flights is an invalid route")
+  response.send("/flights is an invalid route")
+  
+})
+
+// 3-Dec-22 Added.  
+app.get('/hello', async (request, response) => {
+  console.log("Hello to You! API route has been called")
+  response.send("Hello to You")
   
 })
 
@@ -108,7 +117,7 @@ app.get('/nearbyAirports/:latitude,:longitude', async (request, response) => {
 
 
         // Airport Code Parameter 
-        console.log("**server.js: request.params.latitude Longitude: " + request.params.latitude + request.params.longitude)
+        console.log("**server.js: nearbyairports(/) request.params.latitude Longitude: " + request.params.latitude + request.params.longitude)
 
         var latitude = request.params.latitude
         var longitude = request.params.longitude
@@ -147,5 +156,13 @@ catch (error) {
 
 }); //end nearbyAirports
 
-
-app.listen(PORT, () => console.log("Listening on PORT: " + PORT))
+// 3-Dec-22 Modified
+// app.listen(PORT, '0.0.0.0', () => console.log("Listening on PORT: " + PORT))
+app.listen(PORT, '0.0.0.0', function(error) {
+  if (error) {
+    console.error("Error while starting server" + error.stack)
+  }
+  else {
+    console.log("Listening on PORT: " + PORT)
+  }
+})
