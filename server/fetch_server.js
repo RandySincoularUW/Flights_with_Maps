@@ -9,9 +9,9 @@ const PORT = 8000
 // comment out 21-Nov-22
 // const {createCSV} = require('../server/utils.js')
 
-const {connectDB, queryDB, loadCSV, getMaxSequenceNumber, runQueries} = require('../server/database.js')
+const {connectDB, queryDB, loadCSV, getMaxSequenceNumber, runQueries} = require('./database.js')
 
-const {setSequenceNumber} = require('../server/utils.js')
+const {setSequenceNumber} = require('./utils.js')
 
 const express = require("express")
 
@@ -39,14 +39,7 @@ console.log("nearby airport distance: " + nearbyAirportDistance)
 
 const api_base = "https://airlabs.co/api/v9/";
 
-// 11-Dec-22
-// Allows any web page to access the server
-/*
-app.use(cors({
-  origin: ['http://127.0.0.1:8000/flights/msn', 'http://127.0.0.1:8000/flights/',
-  'https://3.95.173.210', '*','http://localhost']
-}))
-*/
+
 app.use(cors({
   origin: ['*']
 }))
@@ -132,6 +125,56 @@ app.get('/flights/:airport_code', cors(corsOptions), async (request, response) =
 
 }); //end flights
 
+app.get('/flights2', cors(corsOptions), async (request, response) => {
+
+  scriptName = "server.js: /flights/:airport_code(): "
+  console.log("in " + scriptName + " ...")
+  try {
+
+
+          // Airport Code Parameter 
+          console.log(scriptName )
+
+          var my_airport_code = "MSN"
+          console.log(scriptName + " airport_code: " + my_airport_code)
+
+          // Check if airport_code is being passed in
+          console.log(scriptName + "  length of airport code: " + my_airport_code.length)
+
+          if (my_airport_code.length < 1) {
+            alert("Missing airport code is available.  Please send in an airport code with this request.")
+          }
+
+          // Departing from Airport
+          // const api_url = 'https://airlabs.co/api/v9/flights?api_key=' + myFlightsAPIKey + '&dep_iata=' + my_airport_code
+
+          // Arrivals
+          const api_url = 'https://airlabs.co/api/v9/flights?api_key=' + myFlightsAPIKey + '&arr_iata=' + my_airport_code
+
+          console.log("*my airport code: " + api_url)
+
+          const fetch_response = await fetch (api_url);
+          const json = await fetch_response.json();
+
+          console.log(json)
+
+          // Read the response stream and produce and return a JavaScript object
+          response.json(json);
+
+          console.log(" +++++++++ calling runQueries() +++++++++++++++")
+          runQueries(json)
+          console.log(" +++++++++ completed runQueries() +++++++++++++++")
+
+          // ------- end Sunday 20-Nov-22 Changes
+
+          console.log(`${scriptName} ++++++++++++ done with getFlights airport code: ++++++++++++++` + my_airport_code)
+        }
+  catch (error) {
+    console.error(scriptName + " Error getting flights for airport: " + error.stack)
+  }
+
+}); //end flights2
+
 // ----------------
 // Nearby Airports
 // ----------------
@@ -192,8 +235,8 @@ catch (error) {
 // 3-Dec-22 Modified
 // app.listen(PORT, '0.0.0.0', () => console.log("Listening on PORT: " + PORT))
 // 10-Dec-22
-app.listen(PORT, '127.0.0.1', function(error) {
-  //app.listen(PORT, function(error) {
+// app.listen(PORT, '127.0.0.1', function(error) {
+  app.listen(PORT, function(error) {
     // 12-Dec-22 remove the '127.0.0.1'
     // app.listen(PORT, function(error) {
   if (error) {

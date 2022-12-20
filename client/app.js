@@ -3,12 +3,36 @@
 // const createCSVAndLoad = require('./utils.js')
 // const createCSVAndLoad = require('./utils.js')
 
+// 16-Dec-22
+// const { response } = require("express")
+
 // can't use import outside a module
 // import createCSVAndLoad from "./utils.js"
 // require('./utils.js')
 
 // import createCSVAndLoad from './utils.js'
 // var createCSVAndLoad = require('./utils.js')
+
+// 9-Dec-22 Add
+// var cors = require('cors');
+
+// 11-Dec-22 comment out
+
+// Allows any web page to access the server
+// const express = require("express")
+// const app = express()
+
+/* comment out 11-Dec-22
+const cors = require("cors")
+app.use(cors({
+    origin: ['http://127.0.0.1:8000/flights/msn', 'http://127.0.0.1:8000/flights/','*']
+  }))
+*/
+
+// 13-Dec-22 Add because we are testing moving getNearbyAirports to: server.js
+// I get this message when using require() here:
+// Uncaught ReferenceError: require is not defined
+//const server = require('../server/server.js')
 
 console.log("app.js()  starting app.js() ... ")
 
@@ -48,22 +72,61 @@ const getFlights = async function (airportCode)  {
         // Modified 2-Dec-22 for AWS server
         // Changed to: HTTPS for AWS
         // 3-Dec-22 Need to use http for AWS
-        const api_url = `http://127.0.0.1:8000/flights/` + `${airportCode}`
+        // 9-Dec-22 Testing Connection refused. Turns into: https:
+        // const api_url = `http://127.0.0.1:8000/flights/` + `${airportCode}`
 
-        // Modify for AWS 1-Dec-22
-        // Comment: 2-Dec-22
-        //const api_url = `/flights/` + `${airportCode}`
+        const api_url = `http://localhost:8000/flights/` + `${airportCode}`
+       
+        //const api_url = `http://localhost:8000/flights/` + `${airportCode}`
 
-   
+        // 9-Dec-22 Test using private ec2 address
+        // const api_url = `http://172.31.82.82:8000/flights/` + `${airportCode}`
+
+        // 9-Dec-22 
+        // Error: ERR_SSL_PROTOCOL_ERROR
+        // const api_url = `https://44.211.63.194:8000/flights/` + `${airportCode}`
+
+        // 10-Dec-22
+        // Error
+        // const api_url = `http://localhost:33451/flights/` + `${airportCode}`
+        // error
+        // const api_url = `https://0.0.0.0:8000/flights/` + `${airportCode}`
+
+        // 9-Dec-22 This doesn't work
+        // const api_url = `/flights/` + `${airportCode}`
+
         console.log("app.js: getFlights() api_url: " + api_url)
        
         // Call API to get current flights for selected airport
-        const response = await fetch(api_url);
+        // 11-Dec-22  comment out for implementing CORS and solving connection refused
+        // 13-Dec-22 uncomment for testing
+
+        // const response = await fetch(api_url);
+
+        // 13-Dec-22 comment out for testing
+        // 16-Dec-22
+
+
+        // +++++++++++++++++
+        
+        // 12-Dec-22 - try mode: 'no-cors' instead of: mode: 'cors'
+        const response = await fetch(api_url, {
+            method: "GET",
+            mode: 'cors',
+            headers: {
+                "Access-Control-Allow-Headers" : "*",
+                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT, ORIGIN, CONTENT-TYPE, Accept",
+                "Access-Control-Allow-Credentials": "false"
+            },
+            referrerPolicy: "origin-when-cross-origin"
+        });
+        
 
         // Wait for response from flight API
         const json = await response.json();
 
-        console.log("app.js: getFlights() " + json);
+        console.log("** app.js: getFlights() " + json);
 
         console.log("app.js: getFlights() length: " + json.response.length)
 
@@ -85,7 +148,9 @@ const getFlights = async function (airportCode)  {
 }  // end getFlights
 
 // +++++++++++++++++++
-// Get nearby airport(s)
+// 13-Dec-22 Comment out. Moved to server.js
+
+// // Get nearby airport(s)
 
 const getNearbyAirports = async function ()  {
 
@@ -104,35 +169,76 @@ const getNearbyAirports = async function ()  {
         // Modified for AWS 2-Dec-22
         // Changed to: HTTPS
         // Comment out 2-Dec-22 for AWS. Getting connection refused
-        // const api_url = `https://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        // const api_url = `http://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
 
         // 2-Dec-22 Try: 127.0.0.1 for localhost?
         
-        // This works
-        // 3-Dec-22
-        // const api_url = `http://127.0.0.1:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
-        const api_url = `http://127.0.0.1:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+         // 12-Dec-22 Try the actual public address
+        // const api_url = `http://44.204.1.76:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
 
         // error 3-Dec-22
         // const api_url = `http://54.147.158.125:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        
+        // const api_url = '/nearbyAirports/' + `${myLatitude},${myLongitude}`
 
-        // const api_url = `http://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        // This used to work
+        // 3-Dec-22
+        // const api_url = `https://127.0.0.1:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+
+        // 14-Dec-22 try elastic ip address
+        // const api_url = `https://52.207.77.214:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
  
-        // const api_url = '8000/nearbyAirports/' + `${myLatitude},${myLongitude}`
 
-        // 3-Dec-22 Try a private address?
-        // Get error: err_name_not_resolved
-        // const api_url = `https://ip-172-31-16-84.ec2.internal:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        // const api_url = `http://127.0.0.1:8000/hello`
+        // const api_url = `http://localhost:8000/hello`
 
-        // try address with special port # shown in ssh window
-        // const api_url = `https://127.0.0.1:59108/nearbyAirports/` + `${myLatitude},${myLongitude}`
-
-        // Comment out 2-Dec-22 for AWS
-        // const api_url = `/nearbyAirports/` + `${myLatitude},${myLongitude}`
+        // 13-Dec-22
+        const api_url = `http://localhost:8000/nearbyAirports/` + `${myLatitude},${myLongitude}`
 
         console.log("app.js: getNearbyAirports() api_url: " + api_url)
        
+        // 11-Dec-22 Comment out to fix connection refused issue
+        // 13-Dec-22 uncomment for testing
         const response = await fetch(api_url);
+
+        // 13-Dec-22 comment out for testing
+        // 16-Dec-22 Got error: dynamic is not a valid enum value of type requestcache
+        /*
+        response = await fetch(api_url, {
+            method: "GET",
+            mode: 'cors',
+            credentials: 'same-origin',
+            referrer: 'about-client',
+            referrerPolicy: 'strict-origin-when-cross-origin',
+            credentials: "same-origin",
+            cache: "dynamic",
+            headers: {
+                'Content-Type': "application/json; charset=utf-8",
+                "Access-Control-Allow-Headers" : "Origin, X-Requested-With, Content-Type, Accept, Authorization,Access-Control-Allow-Headers",
+                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT, ORIGIN, CONTENT-TYPE, Accept",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        });
+        */
+
+        /*
+        response = await fetch(api_url, {
+            method: "GET",
+            mode: 'cors',
+            credentials: 'same-origin',
+            referrer: 'about-client',
+            referrerPolicy: 'strict-origin-when-cross-origin',
+            credentials: "same-origin",
+            headers: {
+                'Content-Type': "application/json; charset=utf-8",
+                "Access-Control-Allow-Headers" : "Origin, X-Requested-With, Content-Type, Accept, Authorization,Access-Control-Allow-Headers",
+                'Access-Control-Allow-Origin': '*',
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT, ORIGIN, CONTENT-TYPE, Accept",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        });
+        */
 
         const json = await response.json();
 
@@ -166,6 +272,9 @@ const getNearbyAirports = async function ()  {
     }
 
 }  // end getNearByAirport()
+
+// end 13-Dec-22
+// +++++++++++++++++++++++++++++++++
 
 console.log("app.js: calling: getNearbyAirports() ....")
 getNearbyAirports()

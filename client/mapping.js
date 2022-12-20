@@ -27,37 +27,43 @@ flightURL = 'https://airlabs.co/api/v9/flights?api_key=' + myFlightsAPIKey + '&a
                 scriptName = "mapping.js: showFlights(): "
                 console.log("in "+ scriptName)
 
-                const response = await fetch(flightURL)
-                const json = await response.json()
+                // 10-Dec-22 Added try/catch
 
-                console.log(scriptName + " data: " + json)
-
-                var delim = ","
-
-                var planeIcon = L.icon({
-                    iconUrl: 'icons8-plane-24.png',
-                
-                    iconSize:     [24, 24], // size of the icon
-                    shadowSize:   [26, 26], // size of the shadow
-                    iconAnchor:   [22, 22], // point of the icon which will correspond to marker's location
-                    popupAnchor:  [-3, -24] // point from which the popup should open relative to the iconAnchor
-                });
-
-
-                for (let i = 0; i < json.response.length;i++) {
+                try {
+                    const response = await fetch(flightURL)
+                    const json = await response.json()
+    
+                    console.log(scriptName + " data: " + json)
+    
+                    var delim = ","
+    
+                    var planeIcon = L.icon({
+                        iconUrl: 'icons8-plane-24.png',
+                    
+                        iconSize:     [24, 24], // size of the icon
+                        shadowSize:   [26, 26], // size of the shadow
+                        iconAnchor:   [22, 22], // point of the icon which will correspond to marker's location
+                        popupAnchor:  [-3, -24] // point from which the popup should open relative to the iconAnchor
+                    });
+                    
+                        for (let i = 0; i < json.response.length;i++) {
              
-                    // Put marker on map
-                    console.log("adding marker to map. LatLng: " + json.response[i].lat,json.response[i].lng)
+                            // Put marker on map
+                            console.log("adding marker to map. LatLng: " + json.response[i].lat,json.response[i].lng)
+        
+                            // const marker = L.marker([json.response[i].lat,json.response[i].lng]).addTo(map)
+                            const marker = L.marker([json.response[i].lat,json.response[i].lng],{icon:planeIcon}).addTo(map)
+        
+                           console.log(json.response[i].reg_number + delim + json.response[i].alt + delim  +
+                           json.response[i].dir + delim + json.response[i].speed + delim + json.response[i].lat +
+                           delim + json.response[i].lng + delim + json.response[i].dep_iata + delim + json.response[i].flight_icao + delim + json.response[i].status)
+        
+                           }  // end for
 
-                    // const marker = L.marker([json.response[i].lat,json.response[i].lng]).addTo(map)
-                    const marker = L.marker([json.response[i].lat,json.response[i].lng],{icon:planeIcon}).addTo(map)
 
-                   console.log(json.response[i].reg_number + delim + json.response[i].alt + delim  +
-                   json.response[i].dir + delim + json.response[i].speed + delim + json.response[i].lat +
-                   delim + json.response[i].lng + delim + json.response[i].dep_iata + delim + json.response[i].flight_icao + delim + json.response[i].status)
-
-                   }  // end for
-
+                } catch (error) {
+                    console.error("Error fetching flightURL: " + flightURL + " Error: " + error.stack) 
+                }
 
             }  // end showFlights()
 

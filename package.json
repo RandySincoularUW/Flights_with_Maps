@@ -12,7 +12,9 @@
 
     "test": "echo \"Error: no test specified\" && exit 1",
 
-    "start": "nodemon ../server/server.js"
+    "start": "nodemon ../server/server.js",
+
+    "test_fetch": "nodemon ../server/fetch_server.js"
 
   },
 
