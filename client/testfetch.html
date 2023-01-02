@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+
 <html>
     <head>
         <meta charset="utf-8">
@@ -21,21 +18,25 @@
         <script>
 
             
+
+    fetch('http://localhost:8000/hello')
+        .then(response => response.json())
+        .then(data => {
+        console.log(data) // Prints result from `response.json()` in getRequest
+        })
+        .catch(error => console.error(error))
+
             try {
 
             // const response = await fetch("http://localhost:8000/flights/MSN");
 
             // const response = fetch("http://localhost:8000/flights/MSN");
-            const response = fetch("https://localhost:8000/hello");
-
-            // internal IP address 17-Dec-22
-            // const response = fetch("https://ip-172-31-82-82.ec2.internal:8000/hello")
+            // const response = fetch("http://localhost:8000/hello");
 
             // Wait for response from flight API
-            // 16-Dec-22 comment out 'await'
-            // const json = await response.json();
+            const json = await response.json();
 
-            const json = response.json();
+            // const json = response.json();
 
             console.log("** app.js: getFlights() " + json);
 

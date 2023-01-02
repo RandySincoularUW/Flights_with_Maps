@@ -1,5 +1,8 @@
 
+// 10-Dec-22 comment out
 const PORT = 8000
+
+// const PORT = 33451
 
 // Import Uility Functions
 
@@ -29,7 +32,6 @@ const { response } = require("express")
 const myFlightsAPIKey = process.env.flightsAPIKey
 
 console.log("server.js(): myFlightsAPIKey: " + myFlightsAPIKey)
-
 // Distance to find nearby airports
 const nearbyAirportDistance = process.env.nearbyAirportDistance
 
@@ -37,47 +39,20 @@ console.log("nearby airport distance: " + nearbyAirportDistance)
 
 const api_base = "https://airlabs.co/api/v9/";
 
-// Middleware. allowedOrigins - list of URL's that can access the node server routes
-app.use(function (req, res, next) {
+// 11-Dec-22
+// Allows any web page to access the server
+/*
+app.use(cors({
+  origin: ['http://127.0.0.1:8000/flights/msn', 'http://127.0.0.1:8000/flights/',
+  'https://3.95.173.210', '*','http://localhost']
+}))
+*/
+app.use(cors({
+  origin: ['*']
+}))
 
-  // Add 2-Jan-23
-  const allowedOrigins = ['http://127.0.0.1','http://54.196.16.63', 
-                          'http://127.0.0.1:8000/hello', 
-                          'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
-                          'http://localhost:8000']
-  const origin = req.headers.origin
-
-  console.log("fetch_server: origin: " + origin)
-
-  if (allowedOrigins.includes(origin)) {
-    console.log("  **origin is included: " + origin)
-    res.setHeader('Access-Control-Allow-Origin', origin)
-  }
-  else {
-    console.log(" origin is NOT included: " + origin)
-  }
-
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // Pass to next layer of middleware
-  next();
-});
-
-
-app.get('/hello', async (request, response) => {
-  console.log("Hello to You! API route has been called")
-
-  response.send({message: "Hello to You"})
-  
-})
+// 12-Dec-22 Add for possible CORS Fix
+app.options('*', cors()) // include before other routes. Enable CORS Pre-Flight
 
 // 3-Dec-22 Updated.  Changed alert to: console.error()
 app.get('/flights', async (request, response) => {
@@ -86,7 +61,31 @@ app.get('/flights', async (request, response) => {
   
 })
 
-app.get('/flights/:airport_code', async (request, response) => {
+// 3-Dec-22 Added.  
+/*
+app.get('/hello', async (request, response) => {
+  console.log("Hello to You! API route has been called")
+  response.send("Hello to You")
+})
+*/
+
+
+
+// ----------------------------
+// This function calls an API to get current flights around a specific airport
+// Pass in an airport code as a Route Parameter
+// Current flights for Airport
+// ----------------------------
+// 11-Dec-22 Added cors() to the function
+var corsOptions = {
+  "origin": '*',
+  "optionsSuccessStatus": 200,
+  "preflightContinue": false,
+  "methods": "GET,HEAD,PUT,POST,PATCH,DELETE"
+
+}
+
+app.get('/flights/:airport_code', cors(corsOptions), async (request, response) => {
 
   scriptName = "server.js: /flights/:airport_code(): "
   console.log("in " + scriptName + " ...")
@@ -144,6 +143,8 @@ app.get('/nearbyAirports/:latitude,:longitude', async (request, response) => {
 
   try {
 
+
+
         // Airport Code Parameter 
         console.log("**server.js: nearbyairports(/) request.params.latitude Longitude: " + request.params.latitude + request.params.longitude)
 
@@ -184,6 +185,14 @@ catch (error) {
 
 }); //end nearbyAirports
 
+
+
+// Add 13-Dec-22
+// exports.getNearbyAirports = getNearbyAirports
+
+// ++++++++++++++++++++ 13-Dec-22
+
+// 3-Dec-22 Modified
 app.listen(PORT, '0.0.0.0', function(error) {
 // 10-Dec-22
 // app.listen(PORT, '127.0.0.1', function(error) {
@@ -194,6 +203,6 @@ app.listen(PORT, '0.0.0.0', function(error) {
     console.error("Error while starting server" + error.stack)
   }
   else {
-    console.log("Node Server is Listening on PORT: " + PORT)
+    console.log("Listening on PORT: " + PORT)
   }
 })

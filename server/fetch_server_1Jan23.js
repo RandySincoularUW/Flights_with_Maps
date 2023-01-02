@@ -2,7 +2,12 @@
 // 10-Dec-22 comment out
 const PORT = 8000
 
-console.log("in fetch_server.js")
+// const PORT = 33451
+
+// Import Uility Functions
+
+// comment out 21-Nov-22
+// const {createCSV} = require('../server/utils.js')
 
 const {connectDB, queryDB, loadCSV, getMaxSequenceNumber, runQueries} = require('./database.js')
 
@@ -24,8 +29,6 @@ const { response } = require("express")
 
 
 // Get the API Key from an Environment Variable called: FLIGHTS_API_KEY
-//* Make sure the .env file is in the same folder (server folder)
-console.log(" getting API Key ...")
 const myFlightsAPIKey = process.env.flightsAPIKey
 
 console.log("server.js(): myFlightsAPIKey: " + myFlightsAPIKey)
@@ -49,33 +52,65 @@ headers: {
 "methods": "GET,HEAD,PUT,POST,PATCH,DELETE"
 }
 
+
+// 31-Dec-22 Add origin option
+// var whitelist = ['http://localhost*', '*']
+// var whitelist = ['http://44.203.47.138:8000/hello']
+
+/*
+var whitelist = ['http://44.203.47.138:8000']
+*/
+
+/* 
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  mode: 'cors',
+  headers: {
+    'Access-Control-Allow-Origin':'*',
+    'Access-Control-Allow-Headers': '*',
+    'Content-Type': 'application/json'
+  },
+  "optionsSuccessStatus": 200,
+  "preflightContinue": false,
+  "methods": "GET,HEAD,PUT,POST,PATCH,DELETE"
+  }
+*/
+/*
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  mode: 'no-cors',
+  headers: {
+    'Access-Control-Allow-Origin':'http://44.203.47.138:8000',
+    'Content-Type': 'application/json'
+  },
+  "optionsSuccessStatus": 200,
+  "preflightContinue": false,
+  "methods": "GET,HEAD,PUT,POST,PATCH,DELETE"
+  }
+*/
+
+// app.use(cors(corsOptions))
+
 // 31-Dec-22
 // Add headers before the routes are defined
 app.use(function (req, res, next) {
 
-  // Add 2-Jan-23
-  const allowedOrigins = ['http://127.0.0.1','http://54.196.16.63', 
-                          'http://127.0.0.1:8000/hello', 
-                          'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
-                          'http://localhost:8000']
-  const origin = req.headers.origin
-
-  console.log("fetch_server: origin: " + origin)
-
-  if (allowedOrigins.includes(origin)) {
-    console.log("  **origin is included: " + origin)
-    res.setHeader('Access-Control-Allow-Origin', origin)
-  }
-  else {
-    console.log(" origin is NOT included: " + origin)
-  }
-
   // Website you wish to allow to connect
+  // res.setHeader('Access-Control-Allow-Origin', 'http://52.55.166.136:8000/hello');
   // 1-Jan-23
-  //res.setHeader('Access-Control-Allow-Origin', 'http://54.196.16.63');
-
-  // 2-Jan-23 Add a second IP address
-  // res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1');
+  res.setHeader('Access-Control-Allow-Origin', 'http://52.55.166.136');
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -91,6 +126,12 @@ app.use(function (req, res, next) {
   next();
 });
 
+// 12-Dec-22 Add for possible CORS Fix
+// 
+// app.options('*', cors()) // include before other routes. Enable CORS Pre-Flight
+
+// 31-Dec-22 comment out for testing
+// app.options('*',cors())
 
 app.get('/hello', async (request, response) => {
   console.log("Hello to You! API route has been called")
@@ -100,6 +141,13 @@ app.get('/hello', async (request, response) => {
   
 })
 
+/*
+app.get('/hello', cors(corsOptions), async (request, response) => {
+  console.log("Hello to You! API route has been called")
+  response.send("Hello to You")
+  
+})
+*/
 
 // 3-Dec-22 Updated.  Changed alert to: console.error()
 app.get('/flights', async (request, response) => {
@@ -108,6 +156,15 @@ app.get('/flights', async (request, response) => {
   
 })
 
+
+// 30-Dec-22 comment out to test CORS
+/*
+//app.get('/hello', async (request, response) => {
+//  console.log("Hello to You! API route has been called")
+//  response.send("Hello to You")
+  
+})
+*/
 
 // 30-Dec-22 Added to test CORS
 var corsOptions2 = {
@@ -310,11 +367,15 @@ catch (error) {
 
 // 3-Dec-22 Modified
 app.listen(PORT, '0.0.0.0', function(error) {
-
+// 10-Dec-22
+// app.listen(PORT, '127.0.0.1', function(error) {
+//  app.listen(PORT, function(error) {
+    // 12-Dec-22 remove the '127.0.0.1'
+    // app.listen(PORT, function(error) {
   if (error) {
-    console.error("Error while starting fetch_server.js" + error.stack)
+    console.error("Error while starting server" + error.stack)
   }
   else {
-    console.log("fetch_server.js is Listening on PORT: " + PORT)
+    console.log("Listening on PORT: " + PORT)
   }
 })
