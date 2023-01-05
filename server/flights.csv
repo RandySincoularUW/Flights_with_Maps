@@ -1,0 +1,4 @@
+id,time_stamp,reg_number,alt,dir,speed,lat,lng,dep_iata,flight_icao,status
+1,01/03/2023 18:30:46,N62895,10668,79,918,40.426987,-101.118591,DEN,UAL496,en-route
+2,01/03/2023 18:30:46,N653AW,10043,56,929,35.99231,-104.5186,PHX,AAL834,en-route
+3,01/03/2023 18:30:46,N805SK,2263,308,498,40.949707,-85.324158,FWA,SKW4607,en-route

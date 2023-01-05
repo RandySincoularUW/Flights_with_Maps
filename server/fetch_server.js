@@ -54,10 +54,31 @@ headers: {
 app.use(function (req, res, next) {
 
   // Add 2-Jan-23
-  const allowedOrigins = ['http://127.0.0.1','http://54.196.16.63', 
+  //const allowedOrigins = ['http://127.0.0.1:8000/hello', 'http://52.23.197.41']
+
+  // 3-Jan-23
+  // This is the elastic IP Address of the fetchTest EC2 server. You need to have both
+  // the base address and the address with the port and route
+  // http://44.197.70.59
+  
+/*
+  const allowedOrigins = ['http://44.197.70.59', 
+  'http://44.197.70.59:8000/hello', 
+  'http://0.0.0.0:8000/hello', 'http://127.0.0.1',
+  'http://127.0.0.1:8000/hello', 
+  'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
+  'http://localhost:8000']
+*/
+
+
+  const allowedOrigins = ['http://44.197.70.59', 
+                          'http://44.197.70.59:8000/?', 
+                          'http://127.0.0.1',
                           'http://127.0.0.1:8000/hello', 
                           'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
                           'http://localhost:8000']
+
+
   const origin = req.headers.origin
 
   console.log("fetch_server: origin: " + origin)
@@ -75,7 +96,7 @@ app.use(function (req, res, next) {
   //res.setHeader('Access-Control-Allow-Origin', 'http://54.196.16.63');
 
   // 2-Jan-23 Add a second IP address
-  // res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1');
+  // res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:8000/hello');
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -85,6 +106,8 @@ app.use(function (req, res, next) {
 
   // Set to true if you need the website to include cookies in the requests sent
   // to the API (e.g. in case you use sessions)
+  
+  // 3-Jan-23 modify
   res.setHeader('Access-Control-Allow-Credentials', true);
 
   // Pass to next layer of middleware
@@ -151,7 +174,8 @@ var corsOptions3 = {
 
 }
 
-app.get('/flights/:airport_code', cors(corsOptions3), async (request, response) => {
+// app.get('/flights/:airport_code', cors(corsOptions3), async (request, response) => {
+  app.get('/flights/:airport_code', async (request, response) => {
 
   scriptName = "server.js: /flights/:airport_code(): "
   console.log("in " + scriptName + " ...")

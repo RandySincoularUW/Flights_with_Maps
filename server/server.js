@@ -41,10 +41,13 @@ const api_base = "https://airlabs.co/api/v9/";
 app.use(function (req, res, next) {
 
   // Add 2-Jan-23
-  const allowedOrigins = ['http://127.0.0.1','http://54.196.16.63', 
+  const allowedOrigins = ['http://44.197.70.59', 
+                          'http://44.197.70.59:8000/?', 
+                          'http://127.0.0.1',
                           'http://127.0.0.1:8000/hello', 
                           'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
                           'http://localhost:8000']
+
   const origin = req.headers.origin
 
   console.log("fetch_server: origin: " + origin)
@@ -103,7 +106,9 @@ app.get('/flights/:airport_code', async (request, response) => {
           console.log(scriptName + "  length of airport code: " + my_airport_code.length)
 
           if (my_airport_code.length < 1) {
-            alert("Missing airport code is available.  Please send in an airport code with this request.")
+
+            my_airport_code = process.env.defaultAirportCode
+            alert("Missing airport code.  Default set to: " + my_airport_code)
           }
 
           // Departing from Airport
@@ -147,21 +152,43 @@ app.get('/nearbyAirports/:latitude,:longitude', async (request, response) => {
         // Airport Code Parameter 
         console.log("**server.js: nearbyairports(/) request.params.latitude Longitude: " + request.params.latitude + request.params.longitude)
 
-        var latitude = request.params.latitude
-        var longitude = request.params.longitude
+        var latitude, longitude
+
+        // Check if latitude and longitude are populated
+        if (isNaN(request.params.latitude)) {
+          console.log(" ** setting lat to default value ...")
+          // Populate latitude from the default value in .env file
+          latitude = process.env.defaultLatitude
+
+          // Save latitude and longitude to local storage
+          // localStorage.setItem('latitude',`${latitude}`)
+        }
+        else {
+          // Populate from route parameters
+          latitude = request.params.latitude
+        }
+
+        if (isNaN(request.params.longitude)) {
+          console.log(" ** setting lat to default value ...")
+          // Populate latitude from the default value in .env file
+          longitude = process.env.defaultLongitude
+
+          // Save latitude and longitude to local storage
+          // Error
+          // localStorage.setItem('longitude',`${longitude}`)
+        }
+        else {
+          // Populate from route parameters
+          longitude = request.params.longitude
+        }
 
         console.log("server.js: lat: " + latitude + ' long:' + longitude)
 
         // Check if latitude, longitude is being passed in
         console.log("server.js  length of lat long: " + latitude.length)
 
-        if (latitude.length < 1) {
-          alert("Missing latitude.  Please send in a latitude with this request.")
-        }
+ 
 
-        if (longitude.length < 1) {
-          alert("Missing longitude value.  Please send in a longitude value with this request.")
-        }
 
         // URL to Get Nearby Airports
         const api_url = 'https://airlabs.co/api/v9/nearby?api_key=' + myFlightsAPIKey + '&distance=' + nearbyAirportDistance + '&lat=' + latitude + '&lng=' + longitude
