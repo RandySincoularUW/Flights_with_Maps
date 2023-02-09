@@ -1,14 +1,13 @@
 
+// Updates
+// 9-Feb-23     no longer using getmaxsequencenumber.  No longer have a primary key in the database,
+//              so we don't have to worry about unique constraint errors in the id #.
+//
 const PORT = 8000
 
 // Import Uility Functions
 
-// comment out 21-Nov-22
-// const {createCSV} = require('../server/utils.js')
-
-const {connectDB, queryDB, loadCSV, getMaxSequenceNumber, runQueries} = require('../server/database.js')
-
-const {setSequenceNumber} = require('../server/utils.js')
+const {connectDB, queryDB, runQueries} = require('../server/database.js')
 
 const express = require("express")
 
@@ -212,11 +211,7 @@ catch (error) {
 }); //end nearbyAirports
 
 app.listen(PORT, '0.0.0.0', function(error) {
-// 10-Dec-22
-// app.listen(PORT, '127.0.0.1', function(error) {
-  //app.listen(PORT, function(error) {
-    // 12-Dec-22 remove the '127.0.0.1'
-    // app.listen(PORT, function(error) {
+
   if (error) {
     console.error("Error while starting server" + error.stack)
   }

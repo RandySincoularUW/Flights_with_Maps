@@ -1,7 +1,7 @@
 const {Pool} = require("pg")
 
 require("dotenv").config()  
-
+/*
     // Database Pool Connection
     const pool = new Pool({
             
@@ -10,6 +10,19 @@ require("dotenv").config()
         password: process.env.pgPassword,
         port: process.env.pgPort,
         host: process.env.pgHost,
+        max: 2,                              // # of pool connections
+        connectionTimeoutMillis: 10000,      // How long to wait for new pool connection
+        idleTimeoutMillis: 10000             // How long to wait before destroying unused connections
+    })
+*/
+    // Database Pool Connection
+    const pool = new Pool({
+            
+        database: 'aviation',
+        user: 'postgres',
+        password: 'admin576',
+        port: 5432,
+        host: 'aviation.cljj00oszjll.us-east-1.rds.amazonaws.com',
         max: 2,                              // # of pool connections
         connectionTimeoutMillis: 10000,      // How long to wait for new pool connection
         idleTimeoutMillis: 10000             // How long to wait before destroying unused connections
@@ -23,12 +36,16 @@ const query1 = `select * from flights;`
 
 const query2 = `select current_time(2);`
 
+const query3 = 'select datname from pg_database;'
+
 const runQuery = async () => {
     try {
 
+        // console.log("Postgres variables: host: " + host + " user: " + user)
         console.log("connecting to database ... ")
 
-        const {rows} = await pool.query(query2)
+        const {rows} = await pool.query(query3)
+        console.log(rows)
         return rows
 
     } catch (error) {

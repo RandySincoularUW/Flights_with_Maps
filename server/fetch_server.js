@@ -53,24 +53,11 @@ headers: {
 // Add headers before the routes are defined
 app.use(function (req, res, next) {
 
-  // Add 2-Jan-23
-  //const allowedOrigins = ['http://127.0.0.1:8000/hello', 'http://52.23.197.41']
-
   // 3-Jan-23
-  // This is the elastic IP Address of the fetchTest EC2 server. You need to have both
+  // This is the elastic IP Address of the AWS EC2 server. You need to have both
   // the base address and the address with the port and route
   // http://44.197.70.59
   
-/*
-  const allowedOrigins = ['http://44.197.70.59', 
-  'http://44.197.70.59:8000/hello', 
-  'http://0.0.0.0:8000/hello', 'http://127.0.0.1',
-  'http://127.0.0.1:8000/hello', 
-  'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
-  'http://localhost:8000']
-*/
-
-
   const allowedOrigins = ['http://44.197.70.59', 
                           'http://44.197.70.59:8000/?', 
                           'http://127.0.0.1',

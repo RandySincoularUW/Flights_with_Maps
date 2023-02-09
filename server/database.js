@@ -1,3 +1,13 @@
+// Updates
+// 7-Feb-23     created new method: loadCSV2 to insert records into postgres database
+// 8-Feb-23     removed code for: get max sequence number. Now, we are just writing all CSV
+//              records into the postgres database.  Might be good for students to add
+//              code to remove/clean up db records when clicking a button, etc.
+//
+// 9-Feb-23     No longer use maxseqnum in createCSV()
+
+// ++++++++++++++++++++++++++
+
 // The format of the result object from a SQL query 
 // is in a JSON Array format
 
@@ -6,6 +16,8 @@ const {Pool} = require("pg")
 const path = require("path")
 const os = require('os')
 const fs = require("fs")
+
+const fastcsv = require("fast-csv") // added 7-Feb-23
 
 const tempDir = os.tmpdir()
 
@@ -23,35 +35,26 @@ try {
     console.log("Error in: database.js:  " + error.stack)
 }
 
-// ---------------------------
-// Create Text File of Flights
-// Load into Postgres DB Table
-// ----------------------------
+// --------------------------------
+// Create Text CSV File of Flights
+// --------------------------------
 
-    const createCSV = async (json, currentID) => {
+//* 9-Feb-23 removed currentID 
+
+    const createCSV = async (json) => {
     
     scriptName = "database.js: createCSV(): "
-    console.log("in " + scriptName + " startingSeqNum: " + currentID)
+    console.log("in " + scriptName)
 
     console.log(scriptName + " json.response.length: " + json.response.length)
 
-    var nextID = currentID        // this is the starting sequence number of ID column
+    var nextID, currentID = 1        // this is the starting sequence number of ID column
 
     // Create New CSV File
     const writableStream = fs.createWriteStream(csvFile,{flags:'w'})   // write stream for creating the output file
 
     try {
    
-            // 4-Dec-22 Add for AWS/EC2
-            // Verify we have a valid currentID value
-            if ((isNaN(currentID)) || (currentID == null)) {
- 
-                console.log(scriptName + " currentID argument not sent, setting default currentID sequence number ...")
-                currentID = 1
-    
-            } 
-
-
             // Indicate no data is available when API is not reachable
             if (json.response.length < 1) {
 
@@ -80,10 +83,6 @@ try {
 
                 for (let i = 0; i < json.response.length;i++) {
              
-                     /* writableStream.write(new Date().toISOString() + delim + json.response[i].reg_number + delim + json.response[i].alt + delim  +
-                        json.response[i].dir + delim + json.response[i].speed + delim + json.response[i].lat +
-                        delim + json.response[i].lng + delim + json.response[i].flight_icao + delim + json.response[i].status + `\n`, 'UTF8')
-                    */
                         writableStream.write(currentID + delim+ getDateTime() + delim + json.response[i].reg_number + delim + json.response[i].alt + delim  +
                         json.response[i].dir + delim + json.response[i].speed + delim + json.response[i].lat +
                         delim + json.response[i].lng + delim + json.response[i].dep_iata + delim + json.response[i].flight_icao + delim + json.response[i].status + `\n`, 'UTF8')
@@ -121,230 +120,111 @@ try {
             console.log(scriptName + " done with createCSV()")
         }
 
-        // endless loop
-        //module.exports = createCSV()
-
 } // end createCSV()
 
 // ++++++++++++++++++++++++++
+// 7-Feb-23
+// Use express and fastcsv to read CSV file and insert into Postgres
+// Based on this code sample: https://www.bezkoder.com/node-js-csv-postgresql/
 
-// Load CSV
-// ---------
-// 21-Nov-22 comment out. Reference Error: loadCSV() is not defined
-// module.exports.loadCSV = async function loadCSV() {
+const loadCSV2 = async () => {
+    console.log(" in loadCSV2() ")
 
-// add this 21-Nov-22
-const loadCSV = async () => {
-    scriptName = "database.js: loadCSV(): "
-    console.log('   ')
-    console.log('   ')
-    
-    console.log(" ------------------ " + scriptName + " starting -------------")
-    
-    var loopCounter = 0
-    var error = false
+    let stream = fs.createReadStream(csvFile)
+    let csvData = []
+    let csvStream = fastcsv
+        .parse()
 
+        // Register an event listener for when data is read in and parsed
+        .on("data", function(data) {
 
-    // Database Pool Connection
-    const pool = new Pool({
-            
-        database: process.env.targetDB,
-        user: process.env.pgUser,
-        password: process.env.pgPassword,
-        port: process.env.pgPort,
-        host: process.env.pgHost,
-        max: 2,                              // # of pool connections
-        connectionTimeoutMillis: 10000,      // How long to wait for new pool connection
-        idleTimeoutMillis: 10000             // How long to wait before destroying unused connections
-    })
+            // Push data to the csvData array for each record
+            csvData.push(data)
+        })
 
-            // Copy CSV File Into Database
-            try {
-                
-                //const result = await client.query(`\COPY ${process.env.dbTable} FROM ${csvFile} WITH DELIMITER ',' CSV`)
+        // Register an event listener after all records have been read
+        .on("end", function() {
 
-                // const result = await pool.query(`\COPY flights (id,time_stamp,reg_number,altitude,direction,speed,latitude,longitude,dep_iata,flight_icao,status) FROM ${csvFile} WITH DELIMITER ',' CSV`)
+            // Remove first line (Header)
+            csvData.shift();
+       
+            // Database Pool Connection
+            const pool = new Pool({
+                    
+                database: process.env.targetDB,
+                user: process.env.pgUser,
+                password: process.env.pgPassword,
+                port: process.env.pgPort,
+                host: process.env.pgHost,
+                max: 2,                              // # of pool connections
+                connectionTimeoutMillis: 10000,      // How long to wait for new pool connection
+                idleTimeoutMillis: 10000             // How long to wait before destroying unused connections
+            })
 
-                var string = `COPY ${process.env.dbTable} FROM ${csvFile} WITH HEADER DELIMITER ',' CSV`
+            // Database Insert Statement
+            const query = `INSERT INTO ${process.env.dbTable} (id, time_stamp, reg_number, altitude, direction, speed, latitude, longitude, dep_iata, flight_icao, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
 
-                console.log(" copy string: " + string)
-                console.log("csvFile: " + csvFile)
+            // Connect to the Database
+            pool.connect((err, client, done) => {
+                if (err) throw err;
 
-                // const result = await pool.query(`\COPY flights (id,time_stamp,reg_number,altitude,direction,speed,latitude,longitude,dep_iata,flight_icao,status) FROM '${csvFile}' WITH DELIMITER ',' CSV`)
+                try {
 
-                // 21-Nov-22 change to {rows}
-                console.log(scriptName + " calling copy command now ...")
-                const rows = await pool.query(`COPY ${process.env.dbTable} FROM '${csvFile}'  WITH HEADER DELIMITER ',' CSV;`)
-                console.log(scriptName + " copy command done ...")
+                    // Loop through all of the records
+                    csvData.forEach(row => {
+                        console.log("forEach: row: " + row)
 
-                // 21-Nov-22 Option for displaying key, value pairs
-                /*
-                for(var i = 0, value; value=rows[i++];) {
-                    console.log("===== "+ i + " =======")
-                    for (var key in value) {
-                        console.log("key: " + key + " value: " + value[key])
-                    }
-                }
-                */
+                        // Insert Records into Database
+                        client.query(query, row, (err, res) => {
+                            if (err) {
+                                console.log("Error in forEach: " + err.stack)
 
-                // console.log(scriptName + " CSV load completed. Status: " + result[0].rows)
-                // comment out 21-Nov-22
-                // console.log(scriptName + " loadCSV() completed. Status: " + result[0].rows)
-                console.log(scriptName + "loadCSV() completed ...")
-                console.log(scriptName + "--------------------------------------------")
+                            } else {
+                                console.log("inserted: " + res.rowCount + " row:", row)
+                            }
 
-            } catch (error) {
-                console.error(scriptName + " Error loading CSV file: " + error.stack)
+                        }) // end client.query
 
-            }
+                    }); // end forEach
+                } finally {
+                    console.log(" done inserting records into database ...")
 
-        finally {
-            // console.log(scriptName + " closing database connection ...")
-            // Close any database connections
-            // await client.end()
-            console.log(" ------------------ " + scriptName + " done -------------")
+                    // Release the database client connection
+                    done()
 
-        }
+                } // end finally()
 
-} // end loadCSV()
+            }) // end pool.connect
 
-// ----------------------------
-// Get Max Sequence Number
-// ----------------------------
+        }) // end .on("end")
 
+        console.log("calling stream.pipe(csvStream) ...")
 
-// Sunday 20-Nov-22 Testing
-// module.exports.getMaxSequenceNumber = async function getMaxSequenceNumber() {
-    const getMaxSequenceNumber = async () => {
-          
-    // const {client} = require("../server/database.js")
-    
-    scriptName = "database.js: getMaxSequenceNumber(): "
-    console.log("in " + scriptName + " ...")
+        // Read the csv file
+        stream.pipe(csvStream)
 
-    var maxID = 0
-    var currentSeqNum = 0
-    var maxSeqNum = 0
-
- // Database Pool Connection
-const pool = new Pool({
-        
-    database: process.env.targetDB,
-    user: process.env.pgUser,
-    password: process.env.pgPassword,
-    port: process.env.pgPort,
-    host: process.env.pgHost,
-    max: 2,                              // # of pool connections
-    connectionTimeoutMillis: 10000,      // How long to wait for new pool connection
-    idleTimeoutMillis: 10000             // How long to wait before destroying unused connections
-})
-
-
-const query2 = `select max(id) from ${process.env.dbTable};`
-
-const query4 = `select nextval('flights_id_seq');`
-
-const query5 = `select setval('flights_id_seq',(select max(id) from ${process.env.dbTable}) + 1;`
-
-    try {
-
-        // This is the fix for the issue of getting unique constraint errors
-        // https://stackoverflow.com/questions/4448340/postgresql-duplicate-key-violates-unique-constraint
-
-        // Get Max(ID) from ID Column in Flights TaBLE
-        const query1 = `select max(id) from ${process.env.dbTable};`
-
-        // Get the sequence id from the flights table
-        //const query2 = `select nextval('flights_id_seq');`
-
-        // Update the sequence #
-        // const query5 = `select setval('flights_id_seq',(select max(id) from ${process.env.dbTable}) + 1;`
-
-        // If the value of query1 is higher than the result of query2, then
-        // perform the following to update the next sequence:
-        // select setval('flights_id_seq', (SELECT MAX(ID FROM flights) + 1);
- 
-        // -----------------------------------
-        // Query for current value of max(id)
-        // -----------------------------------
-        var {rows} = await pool.query(query2)
-
-        /*
-        for(var i = 0, value; value=rows[i++];) {
-            console.log("===== "+ i + " =======")
-            for (var key in value) {
-                console.log("key: " + key + " value: " + value[key])
-            }
-        }
-        */
-
-        // ------------------------------------------------------
-        // Get Current Value for Max(ID)
-        // If the table is new and there are no sequence #'s yet
-        // ------------------------------------------------------
-        if ((isNaN(rows[0].nextval)) || (rows[0].nextval == null)) {
- 
-            maxID = 1
-
-        } else {
-            maxID = rows[0].nextval
-
-        }
-
-        console.log(scriptName + " ** Max(ID) is: " + maxID)
-
- 
-        // return parseInt(maxID)
-
-        maxSeqNum = parseInt(maxID)
-        return maxSeqNum
+    } // end loadCSV2
 
 
 
-    } catch (error) {
-        console.error(scriptName + " Error getting max(id): " + error)
+// ++++++++++++++++++++++++++
 
-    } finally {
-        console.log(scriptName + " all done ...")
 
-    }
 
-    console.log(scriptName + " done with getMaxSequenceNumber() ...")
 
-} // end getMaxSequenceNumber()
 
 // runQueries()
 // -------------
 module.exports.runQueries = async function runQueries(json) {
 
-    var maxSeqNum = 0
-
     console.log(" ----------- starting runQueries() ----------")
-
-    try {
-
-        // Get Max Sequence Number as Integer
-        console.log(" ")
-        console.log(scriptName + " calling getMaxSequenceNumber()")
-        maxSeqNum = await getMaxSequenceNumber()
-
-        // console.log(scriptName + " done.  maxSeqNum: " + maxSeqNum)
-        console.log(" done with getMaxSequenceNumber() maxSeqNum: " + maxSeqNum)
-
-        console.log(" ")
-    } catch (error) {
-        console.log("error with runQueries() msg: " + error.stack)
-
-    } finally {
-        console.log(" done with getMaxSequenceNumber() ...")
-    }
 
     // Create CSV File
     // ---------------
 
     try {
-        console.log(scriptName + " calling createCSV() maxSeqNum: " + maxSeqNum)
-        const results1 = await createCSV(json,maxSeqNum)
+        console.log(scriptName + " calling createCSV()" )
+        const results1 = await createCSV(json)
 
         console.log(" ")
     } catch (error) {
@@ -357,8 +237,11 @@ module.exports.runQueries = async function runQueries(json) {
     try {
 
         // Load the CSV file into the DB
-        console.log(scriptName + " +++++++++++++++++++ calling loadCSV() ... with maxSeqNum: " + maxSeqNum + " +++++++++++++++++")
-        const results2 = await loadCSV(maxSeqNum)
+        console.log(scriptName + " +++++++++++++++++++ calling loadCSV()  +++++++++++++++++")
+        // 7-Feb-23
+        // const results2 = await loadCSV(maxSeqNum)
+
+        const results2 = await loadCSV2()
 
     } catch (error) {
         console.log(" error with loadCSV() ... msg: " + error.stack)
