@@ -25,6 +25,7 @@ require("dotenv").config()
 
 let csvFile             // Global variable so other methods have access to it
 
+// Get name of csvFile from .env file
 try {
 
     csvFile = process.env.csvFile
@@ -172,7 +173,7 @@ const loadCSV2 = async () => {
 
                     // Loop through all of the records
                     csvData.forEach(row => {
-                        console.log("forEach: row: " + row)
+                        console.log("*forEach Loop: row: " + row)
 
                         // Insert Records into Database
                         client.query(query, row, (err, res) => {

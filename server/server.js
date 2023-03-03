@@ -3,6 +3,11 @@
 // 9-Feb-23     no longer using getmaxsequencenumber.  No longer have a primary key in the database,
 //              so we don't have to worry about unique constraint errors in the id #.
 //
+// 10-Feb-23    This script is getting called twice, resulting in duplicate records being inserted into the DB
+//
+// 11-Feb-23    Added this to allowed origin:  'http://127.0.0.1/?',.  Now, the client side no
+//              no longer needs to use the server IP address!
+// 
 const PORT = 8000
 
 // Import Uility Functions
@@ -39,18 +44,29 @@ const api_base = "https://airlabs.co/api/v9/";
 // Middleware. allowedOrigins - list of URL's that can access the node server routes
 app.use(function (req, res, next) {
 
+  console.log("+++++++++ in app.use() +++++++++++ ")
+
   // Add 2-Jan-23
+  // 16-Feb-23 Test
+  
   const allowedOrigins = ['http://44.197.70.59', 
                           'http://44.197.70.59:8000/?', 
+                          'http://44.197.70.59:8000/nearbyAirports/?',
                           'http://127.0.0.1',
+                          'http://127.0.0.1/?',
+                          'http://127.0.0.1:8000/flights/MSN',
                           'http://127.0.0.1:8000/hello', 
-                          'http://127.0.0.1:8000', 'http://localhost:8000/hello', 
+                          'http://127.0.0.1:8000/?', 
+                          'http://127.0.0.1:8000/nearbyAirports/?',
+                          'http://127.0.0.1:8000/nearbyAirports/?/?',
+                          'http://localhost:8000/hello', 
                           'http://localhost:8000']
 
   const origin = req.headers.origin
 
   console.log("fetch_server: origin: " + origin)
-
+  //console.log(req)
+  
   if (allowedOrigins.includes(origin)) {
     console.log("  **origin is included: " + origin)
     res.setHeader('Access-Control-Allow-Origin', origin)
@@ -58,6 +74,11 @@ app.use(function (req, res, next) {
   else {
     console.log(" origin is NOT included: " + origin)
   }
+
+
+// add for testing wildcard 16-Feb-23
+// Wildcard option does Not work
+// res.setHeader('Access-Control-Allow-Origin','*')
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -127,10 +148,11 @@ app.get('/flights/:airport_code', async (request, response) => {
           response.json(json);
 
           console.log(" +++++++++ calling runQueries() +++++++++++++++")
+          
+          // 10-Feb-23 We are getting duplicate records
           runQueries(json)
-          console.log(" +++++++++ completed runQueries() +++++++++++++++")
 
-          // ------- end Sunday 20-Nov-22 Changes
+          console.log(" +++++++++ completed runQueries() +++++++++++++++")
 
           console.log(`${scriptName} ++++++++++++ done with getFlights airport code: ++++++++++++++` + my_airport_code)
         }
@@ -172,9 +194,6 @@ app.get('/nearbyAirports/:latitude,:longitude', async (request, response) => {
           // Populate latitude from the default value in .env file
           longitude = process.env.defaultLongitude
 
-          // Save latitude and longitude to local storage
-          // Error
-          // localStorage.setItem('longitude',`${longitude}`)
         }
         else {
           // Populate from route parameters
@@ -186,10 +205,7 @@ app.get('/nearbyAirports/:latitude,:longitude', async (request, response) => {
         // Check if latitude, longitude is being passed in
         console.log("server.js  length of lat long: " + latitude.length)
 
- 
-
-
-        // URL to Get Nearby Airports
+         // URL to Get Nearby Airports
         const api_url = 'https://airlabs.co/api/v9/nearby?api_key=' + myFlightsAPIKey + '&distance=' + nearbyAirportDistance + '&lat=' + latitude + '&lng=' + longitude
 
 
